@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<div class="block"></div>
+
+<style>
+  div {
+    white-space: pre;
+    line-height: 0.8;
+    font-size: 20px;
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    text-align: center;
+    padding-top: 10%;
+  }
+</style>
+
+<script>
+'use strict';
+
+getVariables();
+
+function getVariables() {
+  let size;
+  let row;
+  let col;
+
+  while(true) {
+    size = prompt('Give N number of queens on a N×N chessboard (3 < N <= 30):', 30);
+
+    if(size === null) {
+        return;
+    }
+
+    size = +size;
+
+    if(!Number.isInteger(size) || size < 4 || size > 30 ) {
+      alert('N must be an integer greater than 3 and less or equal 30!');
+    } else {
+      break;
+    }
+  }
+
+  while(true) {
+    row = prompt('Give mandatory row position of one queen (0 <= row < N):', 0);
+
+    if(row === null) {
+        return;
+    }
+
+    row = +row;
+
+    if(!Number.isInteger( row ) || row < 0 || row >= size) {
+      alert('Row position must be an integer greater than 0 and less than N!');
+    } else {
+      break;
+    }
+  }
+
+  while(true) {
+    col = prompt('Give mandatory column position of one queen (0 <= col < N):', 0);
+
+    if(col === null) {
+      return;
+    }
+
+    col = +col;
+
+    if( !Number.isInteger( col ) || col < 0 || col >= size ) {
+      alert('Column position must be an integer greater than 0 and less than N!');
+    } else {
+      break;
+    }
+  }
+
+  solveNQueens(size, { row, col });
+}
+
+function solveNQueens(boardSize, queenPosition) {
+  if( boardSize === 1 && queenPosition.row === 0 && queenPosition.col === 0 ) return 'Q\n';
+  if( boardSize < 4) return '';
+
+  const fixedRow = queenPosition.row;
+  const queensSet = initSet(boardSize, queenPosition);
+  const chessBoard = makeBoard(boardSize, queenPosition.row, queenPosition.col);
+
+  fillUpBoard(chessBoard, queensSet, fixedRow);
+
+  document.querySelector('.block').innerHTML = makeStringBoard(queensSet);
+}
+
+function fillUpBoard(chessBoard, queensSet, fixedRow) {
+  let currentRow = 0;
+
+  if(fixedRow === 0) {
+    currentRow = 1;
+  }
+
+  while(true) {
+    if(setNewQueen(chessBoard, currentRow, queensSet)) {
+      currentRow += 1;
+
+      if(currentRow === fixedRow) {
+        currentRow += 1;
+      }
+
+      if(currentRow === chessBoard.length) {
+        return;
+      }
+    } else {
+      currentRow -= 1;
+
+      if(currentRow === fixedRow) {
+        currentRow -= 1;
+      }
+
+      if(currentRow < 0) {
+        return;
+      }
+
+      resetAccess(chessBoard, currentRow, queensSet, fixedRow);
+    }
+  }
+}
+
+function resetAccess(chessBoard, row, queensSet, fixedRow) {
+  const column = queensSet[row][queensSet[row].length - 1];
+
+  if(row + 1 === fixedRow) {
+    queensSet[row + 2] = [];
+  } else {
+    queensSet[row + 1] = [];
+  }
+
+  changeCellsAccess(chessBoard, column, row + 1, -1);
+}
+
+function setNewQueen(chessBoard, row, queensSet) {
+  let queenAdded = false;
+  const setRow = queensSet[row];
+
+  chessBoard[row].forEach((cell, index) => {
+    if(cell === 0 && !setRow.includes(index) && !queenAdded) {
+      setRow.push(index);
+      changeCellsAccess(chessBoard, index, row + 1, 1);
+
+      queenAdded = true;
+    }
+  });
+
+  return queenAdded;
+}
+
+function initSet(boardSize, queenPosition) {
+  let set = [];
+
+  for(let i = 0; i < boardSize; i += 1) {
+    set.push([]);
+  }
+
+  set[queenPosition.row].push(queenPosition.col);
+
+  return set;
+}
+
+function makeBoard(boardSize, fixedRow, fixedCol) {
+  const board = [];
+  let boardRow;
+
+  for(let index = 0; index < boardSize; index += 1) {
+    board.push([]);
+    boardRow = board[index];
+
+    for(let i = 0; i < boardSize; i += 1) {
+      boardRow.push(0);
+    }
+  }
+
+  changeCellsAccess(board, fixedCol, fixedRow + 1, 1); 
+
+  let leftColumn = fixedCol - 1;
+  let rightColumn = fixedCol + 1;
+  let row = fixedRow - 1;
+
+  while(row >= 0) {
+    boardRow = board[row];
+
+    boardRow[fixedCol] += 1;
+
+    if(leftColumn >= 0) {
+      boardRow[leftColumn] += 1;
+      leftColumn -= 1;
+    }
+
+    if(rightColumn < boardSize) {
+      boardRow[rightColumn] += 1;
+      rightColumn += 1;
+    }
+
+    row -= 1;
+  }
+
+  return board;
+}
+
+function changeCellsAccess(chessBoard, column, row, value) {
+  let leftColumn = column - 1;
+  let rightColumn = column + 1;
+  let boardRow;
+
+  while(row !== chessBoard.length) {
+    boardRow = chessBoard[row];
+
+    boardRow[column] += value;
+
+    if(leftColumn >= 0) {
+      boardRow[leftColumn] += value;
+      leftColumn -= 1;
+    }
+
+    if(rightColumn < chessBoard.length) {
+      boardRow[rightColumn] += value;
+      rightColumn += 1;
+    }
+
+    row += 1;
+  }
+}
+  
+function makeStringBoard(queensSet) {
+  if(checkWrongSet(queensSet)) {
+    return 'Your parameters have no solution.';
+  }
+
+  let stringBoard = [];
+  let column = 0;
+
+  queensSet.forEach((row, index) => {
+    stringBoard.push('');
+    column = row[row.length - 1];
+
+    for(let i = 0; i < queensSet.length; i += 1) {
+      if(column === i) {
+        stringBoard[index] += 'Q';
+      } else {
+        stringBoard[index] += 'X';
+      }
+    }
+
+    stringBoard[index] += '\n';
+  });
+
+  return stringBoard.join('');
+}
+
+function checkWrongSet(queensSet) {
+  let check = false;
+
+  queensSet.forEach((row) => {
+    if(row.length === 0) {
+      check = true;
+    }
+  });
+
+  return check;
+}
+
+</script>
