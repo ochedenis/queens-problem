@@ -25,13 +25,13 @@ function getVariables() {
   let col;
 
   while(true) {
-    size = prompt('Give N number of queens on a N×N chessboard (3 < N <= 30):', 30);
+    size = prompt('Give N number of queens on a N×N chessboard (3 < N <= 30):', 8);
 
     if(size === null) {
         return;
     }
 
-    size = +size;
+    size = Number(size);
 
     if(!Number.isInteger(size) || size < 4 || size > 30 ) {
       alert('N must be an integer greater than 3 and less or equal 30!');
@@ -47,7 +47,7 @@ function getVariables() {
         return;
     }
 
-    row = +row;
+    row = Number(row);
 
     if(!Number.isInteger( row ) || row < 0 || row >= size) {
       alert('Row position must be an integer greater than 0 and less than N!');
@@ -63,7 +63,7 @@ function getVariables() {
       return;
     }
 
-    col = +col;
+    col = Number(col);
 
     if( !Number.isInteger( col ) || col < 0 || col >= size ) {
       alert('Column position must be an integer greater than 0 and less than N!');
@@ -95,16 +95,12 @@ function fillUpBoard(chessBoard, queensSet, fixedRow) {
     currentRow = 1;
   }
 
-  while(true) {
+  while(currentRow !== chessBoard.length) {
     if(setNewQueen(chessBoard, currentRow, queensSet)) {
       currentRow += 1;
 
       if(currentRow === fixedRow) {
         currentRow += 1;
-      }
-
-      if(currentRow === chessBoard.length) {
-        return;
       }
     } else {
       currentRow -= 1;
